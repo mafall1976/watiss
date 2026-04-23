@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🌿 Élevage Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F4EE;--surf:#FFFDF8;--surf2:#F0EDE5;
+  --txt:#1C1A16;--txt2:#6B6456;--txt3:#A89E90;
+  --bdr:#E2DDD4;--bdr2:#D0C9BC;
+  --sh:0 2px 12px rgba(0,0,0,0.06);--sh-lg:0 8px 40px rgba(0,0,0,0.10);
+  --grn:#5A8C52;--grn-l:#F0F7EE;
+}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased}
+.serif{font-family:'DM Serif Display',serif}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;background:none}
+input,select,textarea{font-family:'DM Sans',sans-serif;outline:none;border:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:0.5;cursor:pointer}
+select option{background:var(--surf)}
+
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes check{0%{transform:scale(0)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.anim-up{animation:up 0.28s ease both}
+.anim-fade{animation:fadeIn 0.2s ease both}
+
+/* Layout */
+.page{max-width:600px;margin:0 auto;padding:16px 16px 0}
+
+/* Cards */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:16px;box-shadow:var(--sh)}
+.card-tap{transition:all 0.18s;cursor:pointer}
+.card-tap:hover{border-color:var(--bdr2);box-shadow:var(--sh-lg);transform:translateY(-1px)}
+.card-tap:active{transform:scale(0.99)}
+
+/* Buttons */
+.btn{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;cursor:pointer;border:none}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-p{background:var(--grn);color:#fff}.btn-p:hover{background:#4A7A42}.btn-p:active{background:#3D6836}
+.btn-s{background:var(--surf2);color:var(--txt);border:1.5px solid var(--bdr)}.btn-s:hover{border-color:var(--bdr2)}
+.btn-d{background:#FFEBEE;color:#C62828;border:1.5px solid #FFCDD2}.btn-d:hover{background:#FFCDD2}
+.btn-sm{padding:6px 13px;font-size:12px;border-radius:8px}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
+.btn-ghost{color:var(--txt2);padding:6px 10px;border-radius:8px;background:none}.btn-ghost:hover{background:var(--surf2)}
+.btn-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.15s}
+
+/* Fields */
+.field{display:flex;flex-direction:column;gap:5px}
+.field>label{font-size:11px;font-weight:700;color:var(--txt2);letter-spacing:0.5px;text-transform:uppercase}
+.finput{background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--txt);width:100%;transition:border-color 0.15s,box-shadow 0.15s}
+.finput:focus{border-color:var(--grn);box-shadow:0 0 0 3px rgba(90,140,82,0.12)}
+select.finput{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6456' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:12px}
+
+/* Pills */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+
+/* Stats */
+.stat{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:14px;text-align:center}
+.stat-v{font-size:26px;font-weight:700;line-height:1.1}
+.stat-l{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+
+/* Progress */
+.prog{height:5px;background:var(--surf2);border-radius:3px;overflow:hidden}
+.prog-f{height:100%;border-radius:3px;transition:width 0.4s ease}
+
+/* Task item */
+.task{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:12px;background:var(--surf2);margin-bottom:6px;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s}
+.task:hover{border-color:var(--bdr2)}
+.task.done{opacity:0.5;background:var(--bg)}
+.task.urgent{border-left:3px solid #E53935}
+.chk{width:22px;height:22px;border-radius:7px;border:2px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;background:var(--surf);margin-top:1px}
+.chk.on{background:var(--grn);border-color:var(--grn);animation:check 0.2s ease}
+
+/* Section title */
+.stitle{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.28);backdrop-filter:blur(5px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn 0.15s}
+@media(min-width:500px){.overlay{align-items:center;padding:20px}}
+.modal{background:var(--surf);border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,0.12);animation:up 0.25s ease}
+@media(min-width:500px){.modal{border-radius:20px;animation:up 0.25s ease;box-shadow:0 20px 60px rgba(0,0,0,0.15)}}
+.modal-handle{width:40px;height:4px;background:var(--bdr2);border-radius:2px;margin:0 auto 18px}
+@media(min-width:500px){.modal-handle{display:none}}
+
+/* Nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--bdr);box-shadow:0 -4px 20px rgba(0,0,0,0.06);z-index:100;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.nav-inner{max-width:600px;margin:0 auto;display:flex;padding:0 6px}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;border-radius:10px;color:var(--txt3);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all 0.15s;background:none;border:none}
+.nav-btn.on{color:var(--grn);background:var(--grn-l)}
+.nav-btn .ni{font-size:19px}
+
+/* Top bar */
+.topbar{background:var(--surf);border-bottom:1px solid var(--bdr);padding:13px 16px;position:sticky;top:0;z-index:50}
+.topbar-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+
+/* Cat btn */
+.catbtn{padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:4px}
+
+/* Timeline */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-row{display:flex;gap:12px;padding:8px 0}
+.tl-side{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.tl-line{width:2px;flex:1;background:var(--bdr);margin-top:3px}
+
+/* Grid helpers */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:400px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
+
+/* Cal */
+.cal-day{border-radius:9px;padding:5px 5px 4px;cursor:pointer;transition:all 0.15s;border:1.5px solid transparent;min-height:50px}
+.cal-day:hover{background:var(--surf2)}
+.cal-day.cal-today{border-color:var(--grn);background:var(--grn-l)}
+.cal-day.cal-sel{background:var(--grn)!important;border-color:var(--grn)}
+.cal-day.cal-other{opacity:0.3}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:3px}
+.cal-dot{width:6px;height:6px;border-radius:50%}
+
+/* Entry chip */
+.echip{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;margin-bottom:5px}
+
+/* Animal chip */
+.achip{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid transparent;cursor:pointer;transition:all 0.15s}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback} = React;
+
+// ══════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════
+const A = {
+  poulet:{id:"poulet",label:"Poulets",emoji:"🐔",color:"#C47A1A",light:"#FFF8E7",
+    phases:["Démarrage J0-J10","Croissance J11-J28","Finition J29+"],
+    aliments:["Starter — démarrage","Grower — croissance","Finisher — finition"],
+    vaccins:["Newcastle J7","Gumboro J14","Newcastle rappel J21","Bronchite J28"],
+    traitements:["Amoxicilline","Enrofloxacine","Toltrazuril","Tylosine","Vitamines/Électrolytes"],
+    maladies:["Coccidiose","Newcastle","Gumboro","Bronchite","Mycoplasmose"],
+    prog:[
+      {j:0,cat:"soin",txt:"Mise en place — chauffage 34°C",urgent:true},
+      {j:1,cat:"traitement",txt:"Vitamines & électrolytes eau J1-J3"},
+      {j:3,cat:"pesee",txt:"Vérifier GMQ — peser échantillon"},
+      {j:7,cat:"vaccin",txt:"Vaccination Newcastle",urgent:true},
+      {j:10,cat:"aliment",txt:"Changer → Grower (croissance)",urgent:true},
+      {j:11,cat:"soin",txt:"Réduire température à 28°C"},
+      {j:14,cat:"vaccin",txt:"Vaccination Gumboro",urgent:true},
+      {j:18,cat:"pesee",txt:"Pesée échantillon 50 sujets"},
+      {j:21,cat:"vaccin",txt:"Newcastle rappel",urgent:true},
+      {j:21,cat:"soin",txt:"Réduire température à 22°C"},
+      {j:25,cat:"pesee",txt:"Contrôle poids — évaluation"},
+      {j:28,cat:"vaccin",txt:"Vaccination Bronchite infectieuse",urgent:true},
+      {j:29,cat:"aliment",txt:"Changer → Finisher + délai attente",urgent:true},
+      {j:35,cat:"pesee",txt:"Pesée finale — estimation abattage"},
+      {j:40,cat:"traitement",txt:"Arrêt anticoccidiens (délai attente)",urgent:true},
+      {j:42,cat:"aliment",txt:"Jeûne 8-12h avant chargement",urgent:true},
+    ],
+    quotidien:[
+      {h:"06:00",txt:"Distribution aliment matin",cat:"aliment"},
+      {h:"07:00",txt:"Contrôle litière & ventilation",cat:"soin"},
+      {h:"09:00",txt:"Observation comportements & mortalité",cat:"soin"},
+      {h:"13:00",txt:"Distribution aliment midi",cat:"aliment"},
+      {h:"16:00",txt:"Contrôle abreuvement & température",cat:"soin"},
+      {h:"18:00",txt:"Aliment soir + ramassage mortalité",cat:"aliment"},
+    ],
+    hebdo:[
+      {dow:1,txt:"Pesée hebdomadaire & IC",cat:"pesee"},
+      {dow:3,txt:"Nettoyage abreuvoirs",cat:"soin"},
+      {dow:5,txt:"Retournement litière",cat:"soin"},
+      {dow:0,txt:"Bilan hebdo mortalité",cat:"soin"},
+    ],
+  },
+  vache:{id:"vache",label:"Vaches",emoji:"🐄",color:"#7B5E3A",light:"#FAF5EE",
+    phases:["Veau 0-6m","Génisse 6-24m","Vache adulte","Gestante","Post-partum"],
+    aliments:["Foin","Ensilage maïs","Concentré","Minéraux/Vitamines"],
+    vaccins:["BVD","IBR","Fièvre aphteuse","Clostridium","Brucellose"],
+    traitements:["Pénicilline","Tétracycline","Flunixine","Oxytocine","Propylène glycol"],
+    maladies:["Mammite","Fièvre de lait","Cétose","Diarrhée veau","Pneumonie"],
+    prog:[
+      {j:0,cat:"soin",txt:"Pesée, BCS, identification (boucles)",urgent:true},
+      {j:7,cat:"vaccin",txt:"Primo-vaccination BVD/IBR"},
+      {j:14,cat:"soin",txt:"Test Brucella réglementaire",urgent:true},
+      {j:21,cat:"vaccin",txt:"Rappel BVD/IBR"},
+      {j:30,cat:"pesee",txt:"Contrôle BCS mensuel"},
+      {j:60,cat:"soin",txt:"Détection chaleurs & IA"},
+      {j:90,cat:"soin",txt:"Diagnostic gestation (échographie)"},
+      {j:180,cat:"vaccin",txt:"Rappel fièvre aphteuse"},
+      {j:270,cat:"aliment",txt:"Transition ration sèche (pré-vêlage)",urgent:true},
+      {j:280,cat:"soin",txt:"Vêlage prévu — surveillance renforcée",urgent:true},
+    ],
+    quotidien:[
+      {h:"05:30",txt:"Traite matin + contrôle mammaire",cat:"soin"},
+      {h:"07:00",txt:"Distribution fourrage",cat:"aliment"},
+      {h:"08:00",txt:"Observation état général & locomotion",cat:"soin"},
+      {h:"12:00",txt:"Contrôle abreuvoirs & minéraux",cat:"soin"},
+      {h:"14:00",txt:"Distribution concentré",cat:"aliment"},
+      {h:"16:30",txt:"Traite soir + enregistrement production",cat:"soin"},
+    ],
+    hebdo:[
+      {dow:1,txt:"Contrôle BCS",cat:"pesee"},
+      {dow:2,txt:"Nettoyage étable",cat:"soin"},
+      {dow:4,txt:"Vérification onglons",cat:"soin"},
+      {dow:6,txt:"Analyse cellules lait",cat:"soin"},
+    ],
+  },
+  mouton:{id:"mouton",label:"Moutons",emoji:"🐑",color:"#5A8C52",light:"#F0F7EE",
+    phases:["Agneau 0-3m","Antenais 3-12m","Adulte","Gestante","Lactation"],
+    aliments:["Foin luzerne","Paille","Concentré ovin","Sel minéral"],
+    vaccins:["Entérotoxémie","Fièvre aphteuse","Brucellose","Pasteurellose","Clavelée"],
+    traitements:["Benzimidazole","Ivermectine","Pénicilline","Sulfamides","Vitamines ADE"],
+    maladies:["Entérotoxémie","Piétin","Parasites","Pneumonie","Toxémie gestation"],
+    prog:[
+      {j:0,cat:"soin",txt:"Quarantaine 21j + antiparasitaire",urgent:true},
+      {j:7,cat:"vaccin",txt:"Vaccination entérotoxémie (primo)"},
+      {j:14,cat:"soin",txt:"Contrôle FAMACHA & coproscopie"},
+      {j:21,cat:"vaccin",txt:"Rappel entérotoxémie + levée quarantaine",urgent:true},
+      {j:30,cat:"soin",txt:"Parage onglons + bain pédiluve"},
+      {j:60,cat:"soin",txt:"Tonte & contrôle parasites externes"},
+      {j:90,cat:"vaccin",txt:"Clavelée + rappel entérotoxémie"},
+      {j:120,cat:"soin",txt:"Lutte — introduction béliers"},
+      {j:165,cat:"soin",txt:"Diagnostic gestation"},
+      {j:180,cat:"aliment",txt:"Flushing gestantes — augmenter ration",urgent:true},
+      {j:210,cat:"soin",txt:"Agnelage prévu — surveillance",urgent:true},
+    ],
+    quotidien:[
+      {h:"07:00",txt:"Distribution foin & eau fraîche",cat:"aliment"},
+      {h:"08:00",txt:"Observation boiteries & sécrétions",cat:"soin"},
+      {h:"12:00",txt:"Contrôle abreuvement & sel",cat:"soin"},
+      {h:"14:00",txt:"Concentré gestantes/allaitantes",cat:"aliment"},
+      {h:"18:00",txt:"Foin soir + inspection agnelage",cat:"aliment"},
+    ],
+    hebdo:[
+      {dow:1,txt:"Inspection FAMACHA",cat:"soin"},
+      {dow:3,txt:"Pédiluve piétin",cat:"soin"},
+      {dow:5,txt:"Nettoyage bergerie",cat:"soin"},
+      {dow:0,txt:"Contrôle sel minéral",cat:"aliment"},
+    ],
+  },
+};
+
+const CM = {
+  aliment:{l:"Alimentation",i:"🌾",c:"#2E7D32",bg:"#E8F5E9",br:"#A5D6A7"},
+  vaccin:{l:"Vaccination",i:"💉",c:"#1565C0",bg:"#E3F2FD",br:"#90CAF9"},
+  traitement:{l:"Traitement",i:"💊",c:"#6A1B9A",bg:"#F3E5F5",br:"#CE93D8"},
+  soin:{l:"Soin",i:"🩺",c:"#E65100",bg:"#FFF3E0",br:"#FFCC80"},
+  pesee:{l:"Pesée",i:"⚖️",c:"#1B5E20",bg:"#F1F8E9",br:"#C5E1A5"},
+  note:{l:"Note",i:"📝",c:"#4E342E",bg:"#EFEBE9",br:"#BCAAA4"},
+};
+
+const MOIS_F=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const JS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+const gid=()=>Math.random().toString(36).substr(2,9);
+const tod=()=>new Date().toISOString().split("T")[0];
+const addD=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return d.toISOString().split("T")[0];};
+const diffD=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/86400000);
+const fmtLong=s=>new Date(s+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+const fmtSh=s=>new Date(s+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+const SK="et_v4";
+const ld=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null;}catch{return null;}};
+const sv=d=>{try{localStorage.setItem(SK,JSON.stringify(d));}catch{}};
+const initSt=()=>({ak:"poulet",lots:{poulet:[],vache:[],mouton:[]},journal:{}});
+
+function getTaches(ak,lot,ds){
+  const age=diffD(lot.dateEntree,ds);
+  const dow=new Date(ds+"T12:00:00").getDay();
+  const t=[];
+  A[ak].prog.forEach(p=>{if(p.j===age)t.push({id:`p${p.j}_${p.txt.slice(0,10)}`,src:"prog",...p});});
+  A[ak].hebdo.forEach(h=>{if(h.dow===dow)t.push({id:`h_${h.txt.slice(0,10)}`,src:"hebdo",...h});});
+  A[ak].quotidien.forEach(q=>t.push({id:`q_${q.h}`,src:"quot",...q}));
+  return t;
+}
+
+// ══════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════
+function Toast({msg,type,done}){
+  useEffect(()=>{const t=setTimeout(done,2600);return()=>clearTimeout(t);},[]);
+  const bg=type==="err"?"#C62828":type==="warn"?"#BF6900":"#2E7D32";
+  return <div style={{position:"fixed",bottom:"90px",right:"16px",zIndex:999,background:bg,color:"#fff",padding:"11px 18px",borderRadius:"12px",fontSize:"13px",fontWeight:600,boxShadow:"0 6px 28px rgba(0,0,0,0.22)",animation:"up 0.25s ease",maxWidth:"260px"}}>{msg}</div>;
+}
+
+// ══════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════
+function Modal({title,onClose,children,sz="md"}){
+  return(
+    <div className="overlay" onClick={e=>{if(e.target.classList.contains("overlay"))onClose();}}>
+      <div className="modal" style={{maxWidth:sz==="lg"?"600px":sz==="sm"?"380px":"480px"}}>
+        <div className="modal-handle"/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"18px"}}>
+          <div className="serif" style={{fontSize:"19px"}}>{title}</div>
+          <button className="btn-ghost btn btn-sm" onClick={onClose} style={{fontSize:"17px",padding:"4px 8px"}}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// SAISIE JOURNALIÈRE — cœur de l'app
+// ══════════════════════════════════════════════════════════
+function Saisie({store,setStore,toast,ak,ds,lotId,onClose}){
+  const an=A[ak], lot=store.lots[ak].find(l=>l.id===lotId);
+  if(!lot) return null;
+  const jk=ds, jd=store.journal?.[jk]?.[lotId]||{td:[],entries:[]};
+
+  const [td,setTd]=useState(jd.td||[]);
+  const [entries,setEntries]=useState(jd.entries||[]);
+  const [showF,setShowF]=useState(false);
+  const [form,setForm]=useState({cat:"aliment",produit:"",qte:"",mort:"",note:""});
+  const [step,setStep]=useState(0); // 0=routine,1=saisie
+
+  const saveJ=(ntd,ne)=>{
+    setStore(s=>{
+      const j={...(s.journal||{})};
+      if(!j[jk])j[jk]={};
+      j[jk][lotId]={td:ntd,entries:ne};
+      return {...s,journal:j};
+    });
+  };
+
+  const toggle=(id)=>{
+    const n=td.includes(id)?td.filter(x=>x!==id):[...td,id];
+    setTd(n);saveJ(n,entries);
+  };
+
+  const addEntry=()=>{
+    if(!form.produit&&!form.note&&!form.mort)return;
+    const e={id:gid(),cat:form.cat,produit:form.produit,qte:form.qte,mort:parseInt(form.mort)||0,note:form.note};
+    const ne=[...entries,e];
+    setEntries(ne);
+    if(e.mort>0){
+      setStore(s=>({...s,lots:{...s.lots,[ak]:s.lots[ak].map(l=>l.id===lotId?{...l,mortalite:(l.mortalite||0)+e.mort}:l)}}));
+    }
+    saveJ(td,ne);
+    setForm({cat:"aliment",produit:"",qte:"",mort:"",note:""});
+    setShowF(false);
+    toast("Saisie enregistrée ✓");
+  };
+
+  const delEntry=(eid)=>{
+    const e=entries.find(x=>x.id===eid);
+    const ne=entries.filter(x=>x.id!==eid);
+    setEntries(ne);
+    if(e?.mort>0)setStore(s=>({...s,lots:{...s.lots,[ak]:s.lots[ak].map(l=>l.id===lotId?{...l,mortalite:Math.max(0,(l.mortalite||0)-e.mort)}:l)}}));
+    saveJ(td,ne);
+  };
+
+  const age=diffD(lot.dateEntree,ds);
+  const vivants=lot.effectif-(lot.mortalite||0);
+  const taches=getTaches(ak,lot,ds);
+  const prog=taches.filter(t=>t.src==="prog");
+  const routine=taches.filter(t=>t.src!=="prog");
+  const doneN=td.filter(id=>taches.find(t=>t.id===id)).length;
+  const pct=taches.length?doneN/taches.length*100:0;
+
+  // Suggestions produits selon catégorie
+  const prodOpts={
+    aliment:an.aliments, vaccin:an.vaccins, traitement:an.traitements,
+    soin:["Tonte","Parage onglons","Détiquetage","Bain pédiluve","Contrôle vétérinaire","Examen clinique"],
+    pesee:["Pesée individuelle","Pesée groupe","Estimation"],
+    note:["Observation","Incident","Météo","Autre"],
+  };
+
+  return(
+    <Modal title="" onClose={onClose} sz="lg">
+      {/* Header lot */}
+      <div style={{background:an.light,borderRadius:"14px",padding:"14px 16px",marginBottom:"18px",border:`1.5px solid ${an.color}33`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+            <span style={{fontSize:"28px"}}>{an.emoji}</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:"16px",color:an.color}}>{lot.nom}</div>
+              <div style={{fontSize:"12px",color:"var(--txt2)"}}>J+{age} · {fmtLong(ds)}</div>
+            </div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:"24px",fontWeight:800,color:an.color,lineHeight:1}}>{vivants}</div>
+            <div style={{fontSize:"10px",color:"var(--txt2)"}}>vivants / {lot.effectif}</div>
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:"11px",color:"var(--txt2)",marginBottom:"4px"}}>
+          <span>Progression</span><span style={{fontWeight:700}}>{doneN}/{taches.length} tâches</span>
+        </div>
+        <div className="prog"><div className="prog-f" style={{width:`${pct}%`,background:an.color}}/></div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",background:"var(--surf2)",borderRadius:"10px",padding:"3px",gap:"3px",marginBottom:"18px"}}>
+        {[{id:0,l:"✔ Tâches"},{id:1,l:"+ Saisie"}].map(t=>(
+          <button key={t.id} onClick={()=>setStep(t.id)}
+            style={{flex:1,padding:"8px",borderRadius:"8px",fontSize:"13px",fontWeight:600,border:"none",cursor:"pointer",transition:"all 0.15s",background:step===t.id?"var(--surf)":"transparent",color:step===t.id?"var(--txt)":"var(--txt2)",boxShadow:step===t.id?"0 1px 4px rgba(0,0,0,0.1)":"none"}}>
+            {t.l}
+          </button>
+        ))}
+      </div>
+
+      {/* TÂCHES */}
+      {step===0&&(
+        <div>
+          {prog.length>0&&(
+            <div style={{marginBottom:"16px"}}>
+              <div className="stitle">🔔 Programme du jour</div>
+              {prog.map(t=>(
+                <div key={t.id} className={`task${td.includes(t.id)?" done":""}${t.urgent?" urgent":""}`} onClick={()=>toggle(t.id)}>
+                  <div className={`chk${td.includes(t.id)?" on":""}`}>{td.includes(t.id)&&<span style={{color:"#fff",fontSize:"12px",fontWeight:900}}>✓</span>}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:600,fontSize:"13px",textDecoration:td.includes(t.id)?"line-through":"none",color:t.urgent?"#C62828":"var(--txt)"}}>{t.txt}</div>
+                    <div style={{display:"flex",gap:"5px",marginTop:"4px",flexWrap:"wrap"}}>
+                      <span style={{fontSize:"11px",background:CM[t.cat]?.bg,color:CM[t.cat]?.c,padding:"2px 8px",borderRadius:"20px",fontWeight:600,border:`1px solid ${CM[t.cat]?.br}`}}>{CM[t.cat]?.i} {CM[t.cat]?.l}</span>
+                      {t.urgent&&<span style={{fontSize:"11px",background:"#FFEBEE",color:"#C62828",padding:"2px 8px",borderRadius:"20px",fontWeight:600}}>⚠️ Urgent</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <div className="stitle">📋 Routine quotidienne ({routine.length})</div>
+            <div style={{maxHeight:"260px",overflowY:"auto",paddingRight:"2px"}}>
+              {routine.map(t=>(
+                <div key={t.id} className={`task${td.includes(t.id)?" done":""}`} onClick={()=>toggle(t.id)}>
+                  <div className={`chk${td.includes(t.id)?" on":""}`}>{td.includes(t.id)&&<span style={{color:"#fff",fontSize:"12px",fontWeight:900}}>✓</span>}</div>
+                  <div style={{flex:1,textDecoration:td.includes(t.id)?"line-through":"none",fontSize:"13px"}}>{t.txt}</div>
+                  {t.h&&<span style={{fontSize:"11px",color:"var(--txt3)",flexShrink:0}}>{t.h}</span>}
+                  {t.src==="hebdo"&&<span style={{fontSize:"10px",background:"var(--surf2)",color:"var(--txt3)",padding:"2px 7px",borderRadius:"5px",flexShrink:0}}>hebdo</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SAISIE */}
+      {step===1&&(
+        <div>
+          {/* Saisies existantes */}
+          {entries.length>0&&(
+            <div style={{marginBottom:"16px"}}>
+              <div className="stitle">Saisies enregistrées ({entries.length})</div>
+              {entries.map(e=>{
+                const m=CM[e.cat];
+                return(
+                  <div key={e.id} className="echip" style={{background:m.bg,border:`1px solid ${m.br}`}}>
+                    <span style={{fontSize:"18px"}}>{m.i}</span>
+                    <div style={{flex:1}}>
+                      {e.produit&&<div style={{fontWeight:600,fontSize:"13px",color:m.c}}>{e.produit}{e.qte&&<span style={{fontWeight:400,color:"var(--txt2)"}}> · {e.qte}</span>}</div>}
+                      {e.mort>0&&<div style={{fontSize:"12px",color:"#C62828",fontWeight:600}}>💀 {e.mort} mort(s) enregistré(s)</div>}
+                      {e.note&&<div style={{fontSize:"12px",color:"var(--txt2)",fontStyle:"italic"}}>{e.note}</div>}
+                    </div>
+                    <button className="btn-ghost btn btn-xs" onClick={()=>delEntry(e.id)} style={{color:"var(--txt3)",flexShrink:0}}>✕</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Formulaire */}
+          <div style={{background:"var(--surf2)",borderRadius:"14px",padding:"16px",border:"1.5px solid var(--bdr2)"}}>
+            <div style={{fontWeight:700,marginBottom:"14px",fontSize:"14px"}}>Nouvelle saisie</div>
+
+            {/* Catégorie */}
+            <div style={{marginBottom:"14px"}}>
+              <div style={{fontSize:"10px",fontWeight:700,color:"var(--txt2)",letterSpacing:"0.5px",textTransform:"uppercase",marginBottom:"8px"}}>Catégorie</div>
+              <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
+                {Object.entries(CM).map(([k,m])=>(
+                  <button key={k} onClick={()=>setForm({...form,cat:k,produit:""})}
+                    style={{padding:"6px 11px",borderRadius:"9px",fontSize:"12px",fontWeight:600,border:`1.5px solid ${form.cat===k?m.c:m.br}`,background:form.cat===k?m.bg:"transparent",color:form.cat===k?m.c:"var(--txt2)",cursor:"pointer",transition:"all 0.13s"}}>
+                    {m.i} {m.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+              {/* Produit */}
+              <div className="field">
+                <label>{form.cat==="aliment"?"Aliment":form.cat==="vaccin"?"Vaccin":form.cat==="traitement"?"Produit":form.cat==="pesee"?"Type de pesée":"Description"}</label>
+                <select className="finput" value={form.produit} onChange={e=>setForm({...form,produit:e.target.value})}>
+                  <option value="">— Sélectionner</option>
+                  {(prodOpts[form.cat]||[]).map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+
+              {/* Quantité si pertinent */}
+              {(form.cat==="aliment"||form.cat==="traitement"||form.cat==="pesee")&&(
+                <div className="field">
+                  <label>{form.cat==="pesee"?"Poids mesuré":"Quantité / dose"}</label>
+                  <input className="finput" value={form.qte} onChange={e=>setForm({...form,qte:e.target.value})} placeholder={form.cat==="aliment"?"ex: 50 kg":form.cat==="pesee"?"ex: 2,1 kg/animal":"ex: 2 ml/animal"}/>
+                </div>
+              )}
+
+              {/* Mortalité */}
+              <div className="field">
+                <label>Mortalité ce jour (nombre de morts) <span style={{color:"#C62828"}}>💀</span></label>
+                <input type="number" className="finput" min="0" value={form.mort} onChange={e=>setForm({...form,mort:e.target.value})} placeholder="0 (laisser vide si aucun)"/>
+              </div>
+
+              {/* Note */}
+              <div className="field">
+                <label>Observations / note libre</label>
+                <textarea className="finput" rows={2} value={form.note} onChange={e=>setForm({...form,note:e.target.value})} placeholder="Comportement, météo, incident…" style={{resize:"vertical"}}/>
+              </div>
+            </div>
+
+            <div style={{display:"flex",gap:"8px",marginTop:"14px"}}>
+              <button className="btn btn-p" onClick={addEntry} style={{flex:1,justifyContent:"center"}}>Enregistrer la saisie</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// FORM LOT
+// ══════════════════════════════════════════════════════════
+function LotForm({ak,onSave,onClose,existing}){
+  const an=A[ak];
+  const [f,setF]=useState(existing||{nom:"",effectif:"",phase:"",dateEntree:tod(),notes:""});
+  const ok=f.nom&&f.effectif&&parseInt(f.effectif)>0;
+  return(
+    <Modal title={existing?"Modifier le lot":"Nouveau lot"} onClose={onClose} sz="sm">
+      <div style={{display:"flex",flexDirection:"column",gap:"11px"}}>
+        <div className="field"><label>Nom du lot *</label><input className="finput" value={f.nom} onChange={e=>setF({...f,nom:e.target.value})} placeholder="ex: Bâtiment A - Bande 3" autoFocus/></div>
+        <div className="g2">
+          <div className="field"><label>Effectif *</label><input type="number" className="finput" value={f.effectif} onChange={e=>setF({...f,effectif:e.target.value})} placeholder="100"/></div>
+          <div className="field"><label>Date d'entrée</label><input type="date" className="finput" value={f.dateEntree} onChange={e=>setF({...f,dateEntree:e.target.value})}/></div>
+        </div>
+        <div className="field"><label>Phase</label>
+          <select className="finput" value={f.phase} onChange={e=>setF({...f,phase:e.target.value})}>
+            <option value="">— Sélectionner</option>{an.phases.map(p=><option key={p}>{p}</option>)}
+          </select>
+        </div>
+        <div className="field"><label>Notes</label><textarea className="finput" rows={2} value={f.notes} onChange={e=>setF({...f,notes:e.target.value})} style={{resize:"vertical"}}/></div>
+        <div style={{display:"flex",gap:"8px",paddingTop:"4px"}}>
+          <button className="btn btn-p" style={{flex:1,justifyContent:"center"}} onClick={()=>ok&&onSave(f)} disabled={!ok}>{existing?"Mettre à jour":"Créer le lot"}</button>
+          <button className="btn btn-s" onClick={onClose}>Annuler</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// CALENDRIER
+// ══════════════════════════════════════════════════════════
+function Cal({store,ak,selDay,onSel}){
+  const [cd,setCd]=useState(new Date());
+  const today=tod();
+  const lots=store.lots[ak];
+  const an=A[ak];
+
+  const days=useMemo(()=>{
+    const y=cd.getFullYear(),m=cd.getMonth();
+    const f=new Date(y,m,1),l=new Date(y,m+1,0);
+    let s=new Date(f);const dw=s.getDay();s.setDate(s.getDate()-(dw===0?6:dw-1));
+    const arr=[],c=new Date(s);
+    while(c<=l||arr.length%7!==0){arr.push(c.toISOString().split("T")[0]);c.setDate(c.getDate()+1);if(arr.length>42)break;}
+    return arr;
+  },[cd]);
+
+  const getInfo=(ds)=>{
+    let u=false,v=false,e=false;
+    lots.forEach(lot=>{
+      getTaches(ak,lot,ds).forEach(t=>{if(t.urgent)u=true;if(t.cat==="vaccin")v=true;});
+      if(store.journal?.[ds]?.[lot.id]?.entries?.length)e=true;
+    });
+    return{u,v,e};
+  };
+
+  return(
+    <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+        <button className="btn btn-ghost" onClick={()=>{const d=new Date(cd);d.setMonth(d.getMonth()-1);setCd(d);}}>‹</button>
+        <div style={{textAlign:"center"}}>
+          <span className="serif" style={{fontSize:"17px"}}>{MOIS_F[cd.getMonth()]} {cd.getFullYear()}</span>
+        </div>
+        <div style={{display:"flex",gap:"5px"}}>
+          <button className="btn btn-xs btn-s" onClick={()=>setCd(new Date())}>Auj.</button>
+          <button className="btn btn-ghost" onClick={()=>{const d=new Date(cd);d.setMonth(d.getMonth()+1);setCd(d);}}>›</button>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px",marginBottom:"4px"}}>
+        {JS.map(j=><div key={j} style={{textAlign:"center",fontSize:"10px",fontWeight:700,color:"var(--txt3)",padding:"3px 0"}}>{j}</div>)}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
+        {days.map(ds=>{
+          const inf=getInfo(ds);
+          const isCur=new Date(ds).getMonth()===cd.getMonth();
+          const isSel=ds===selDay, isT=ds===today;
+          return(
+            <div key={ds} className={`cal-day${isT?" cal-today":""}${isSel?" cal-sel":""}${!isCur?" cal-other":""}`} onClick={()=>onSel(ds)}>
+              <div style={{fontSize:"12px",fontWeight:isSel||isT?700:400,color:isSel?"#fff":isT?an.color:"var(--txt)"}}>{new Date(ds).getDate()}</div>
+              <div className="cal-dots">
+                {inf.u&&<div className="cal-dot" style={{background:isSel?"rgba(255,255,255,0.8)":"#E53935"}}/>}
+                {inf.v&&<div className="cal-dot" style={{background:isSel?"rgba(255,255,255,0.8)":"#1565C0"}}/>}
+                {inf.e&&<div className="cal-dot" style={{background:isSel?"rgba(255,255,255,0.8)":"#5A8C52"}}/>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{display:"flex",gap:"12px",marginTop:"10px",flexWrap:"wrap"}}>
+        {[["#E53935","Urgent"],["#1565C0","Vaccination"],["#5A8C52","Saisie"]].map(([c,l])=>(
+          <div key={l} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"11px",color:"var(--txt2)"}}>
+            <div style={{width:"7px",height:"7px",borderRadius:"50%",background:c}}/>{l}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// CARD LOT (pour la vue jour)
+// ══════════════════════════════════════════════════════════
+function LotCard({store,ak,lot,ds,onSaisie}){
+  const an=A[ak];
+  const age=diffD(lot.dateEntree,ds);
+  const vivants=lot.effectif-(lot.mortalite||0);
+  const taches=getTaches(ak,lot,ds);
+  const jd=store.journal?.[ds]?.[lot.id]||{td:[],entries:[]};
+  const done=jd.td.filter(id=>taches.find(t=>t.id===id)).length;
+  const prog=taches.filter(t=>t.src==="prog");
+  const hasUrgent=prog.some(t=>t.urgent);
+  const pct=taches.length?done/taches.length*100:0;
+
+  return(
+    <div className="card card-tap" onClick={onSaisie}
+      style={{padding:"15px 16px",borderLeft:`4px solid ${hasUrgent?"#E53935":pct===100?"#5A8C52":an.color}`}}>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:"8px"}}>
+        <div>
+          <div style={{fontWeight:700,fontSize:"15px",marginBottom:"2px"}}>{lot.nom}</div>
+          <div style={{fontSize:"12px",color:"var(--txt2)"}}>J+{age} · {vivants} vivants · {lot.phase||"—"}</div>
+        </div>
+        <div style={{textAlign:"right",flexShrink:0,marginLeft:"10px"}}>
+          <div style={{fontSize:"18px",fontWeight:800,color:pct===100?"#5A8C52":an.color}}>{done}<span style={{fontSize:"12px",fontWeight:400,color:"var(--txt3)"}}>/{taches.length}</span></div>
+          <div style={{fontSize:"10px",color:"var(--txt3)"}}>tâches</div>
+        </div>
+      </div>
+
+      {prog.length>0&&(
+        <div style={{display:"flex",flexWrap:"wrap",gap:"5px",marginBottom:"8px"}}>
+          {prog.slice(0,3).map(t=>(
+            <span key={t.id} style={{fontSize:"11px",padding:"3px 9px",borderRadius:"20px",fontWeight:600,background:jd.td.includes(t.id)?"#E8F5E9":t.urgent?"#FFEBEE":"#FFF3E0",color:jd.td.includes(t.id)?"#2E7D32":t.urgent?"#C62828":"#E65100",border:`1px solid ${jd.td.includes(t.id)?"#A5D6A7":t.urgent?"#FFCDD2":"#FFCC80"}`,textDecoration:jd.td.includes(t.id)?"line-through":"none"}}>
+              {t.urgent&&!jd.td.includes(t.id)?"⚠️ ":jd.td.includes(t.id)?"✓ ":""}{t.txt.slice(0,28)}{t.txt.length>28?"…":""}
+            </span>
+          ))}
+          {prog.length>3&&<span style={{fontSize:"11px",color:"var(--txt3)"}}>+{prog.length-3}</span>}
+        </div>
+      )}
+
+      {jd.entries.length>0&&(
+        <div style={{display:"flex",flexWrap:"wrap",gap:"4px",marginBottom:"8px"}}>
+          {jd.entries.map(e=><span key={e.id} style={{fontSize:"11px",background:"#E8F5E9",color:"#2E7D32",padding:"2px 8px",borderRadius:"20px",border:"1px solid #A5D6A7",fontWeight:600}}>{CM[e.cat]?.i} {e.produit||e.note?.slice(0,15)||"saisie"}</span>)}
+        </div>
+      )}
+
+      <div>
+        <div className="prog" style={{height:"4px"}}><div className="prog-f" style={{width:`${pct}%`,background:pct===100?"#5A8C52":an.color}}/></div>
+      </div>
+      <div style={{fontSize:"11px",color:an.color,fontWeight:600,textAlign:"right",marginTop:"6px"}}>
+        {pct===100?"✅ Journée complète":"Appuyer pour saisir →"}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// PAGE LOTS (gestion)
+// ══════════════════════════════════════════════════════════
+function LotsPage({store,setStore,ak,toast}){
+  const an=A[ak], lots=store.lots[ak], today=tod();
+  const [showAdd,setShowAdd]=useState(false);
+  const [edit,setEdit]=useState(null);
+  const [detail,setDetail]=useState(null);
+
+  const create=f=>{setStore(s=>({...s,lots:{...s.lots,[ak]:[...s.lots[ak],{id:gid(),...f,effectif:parseInt(f.effectif),mortalite:0}]}}));setShowAdd(false);toast("Lot créé ✓");};
+  const update=f=>{setStore(s=>({...s,lots:{...s.lots,[ak]:s.lots[ak].map(l=>l.id===edit.id?{...l,...f,effectif:parseInt(f.effectif)}:l)}}));setEdit(null);toast("Mis à jour ✓");};
+  const del=id=>{if(!window.confirm("Supprimer ce lot ?"))return;setStore(s=>({...s,lots:{...s.lots,[ak]:s.lots[ak].filter(l=>l.id!==id)}}));toast("Supprimé","warn");};
+
+  const dObj=detail?lots.find(l=>l.id===detail):null;
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+        <div><div className="serif" style={{fontSize:"20px"}}>{an.emoji} {an.label}</div><div style={{fontSize:"12px",color:"var(--txt2)"}}>{lots.length} lot(s)</div></div>
+        <button className="btn btn-p btn-sm" onClick={()=>setShowAdd(true)}>+ Nouveau lot</button>
+      </div>
+
+      {!lots.length&&(
+        <div style={{textAlign:"center",padding:"50px 20px",color:"var(--txt3)"}}>
+          <div style={{fontSize:"52px",marginBottom:"14px"}}>{an.emoji}</div>
+          <div className="serif" style={{fontSize:"18px",color:"var(--txt2)",marginBottom:"8px"}}>Aucun lot</div>
+          <div style={{fontSize:"13px",marginBottom:"22px"}}>Créez votre premier lot pour commencer</div>
+          <button className="btn btn-p" onClick={()=>setShowAdd(true)}>Créer un lot</button>
+        </div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+        {lots.map(lot=>{
+          const age=diffD(lot.dateEntree,today);
+          const vivants=lot.effectif-(lot.mortalite||0);
+          const next=an.prog.find(p=>p.j>age);
+          return(
+            <div key={lot.id} className="card card-tap" style={{padding:"15px 16px"}} onClick={()=>setDetail(lot.id)}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"10px"}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:"14px"}}>{lot.nom}</div>
+                  <div style={{fontSize:"12px",color:"var(--txt2)",marginTop:"2px"}}>J+{age} · entrée {fmtSh(lot.dateEntree)} · {lot.phase||"—"}</div>
+                </div>
+                <div style={{display:"flex",gap:"4px"}}>
+                  <button className="btn-ghost btn-icon" onClick={e=>{e.stopPropagation();setEdit(lot);}}>✏️</button>
+                  <button className="btn-ghost btn-icon" onClick={e=>{e.stopPropagation();del(lot.id);}} style={{color:"#C62828"}}>🗑</button>
+                </div>
+              </div>
+              <div className="g3" style={{marginBottom:"10px"}}>
+                {[{l:"Vivants",v:vivants,c:an.color,bg:an.light},{l:"Morts",v:lot.mortalite||0,c:"#C62828",bg:"#FFEBEE"},{l:"Tx mort.",v:`${lot.effectif>0?((lot.mortalite||0)/lot.effectif*100).toFixed(1):0}%`,c:"var(--txt)",bg:"var(--surf2)"}].map(s=>(
+                  <div key={s.l} className="stat" style={{padding:"10px",background:s.bg}}>
+                    <div className="stat-v" style={{fontSize:"20px",color:s.c}}>{s.v}</div>
+                    <div className="stat-l">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              {next&&<div style={{fontSize:"12px",color:"#E65100",background:"#FFF3E0",padding:"7px 10px",borderRadius:"8px",border:"1px solid #FFCC80"}}>⏭ Prochain : J+{next.j} — {next.txt}</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detail */}
+      {dObj&&(
+        <Modal title={dObj.nom} onClose={()=>setDetail(null)}>
+          <div className="g3" style={{marginBottom:"16px"}}>
+            {[{l:"Effectif",v:dObj.effectif},{l:"Vivants",v:dObj.effectif-(dObj.mortalite||0),c:an.color,bg:an.light},{l:"Morts",v:dObj.mortalite||0,c:"#C62828",bg:"#FFEBEE"}].map(s=>(
+              <div key={s.l} className="stat" style={{background:s.bg||"var(--surf)"}}>
+                <div className="stat-v" style={{color:s.c||"var(--txt)"}}>{s.v}</div><div className="stat-l">{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <div className="stitle">Programme à venir</div>
+          <div style={{maxHeight:"240px",overflowY:"auto"}}>
+            {an.prog.filter(p=>p.j>=diffD(dObj.dateEntree,today)).slice(0,8).map((p,i)=>{
+              const m=CM[p.cat];
+              return(
+                <div key={i} style={{display:"flex",gap:"10px",alignItems:"center",padding:"8px 0",borderBottom:"1px solid var(--bdr)"}}>
+                  <span style={{background:m.bg,color:m.c,border:`1px solid ${m.br}`,borderRadius:"6px",padding:"2px 8px",fontSize:"11px",fontWeight:700,flexShrink:0}}>J+{p.j}</span>
+                  <span style={{flex:1,fontSize:"12px",color:p.urgent?"#C62828":"var(--txt)",fontWeight:p.urgent?600:400}}>{m.i} {p.txt}</span>
+                  <span style={{fontSize:"10px",color:"var(--txt3)",flexShrink:0}}>{addD(dObj.dateEntree,p.j)}</span>
+                </div>
+              );
+            })}
+            {!an.prog.filter(p=>p.j>=diffD(dObj.dateEntree,today)).length&&<div style={{color:"var(--txt3)",fontStyle:"italic",textAlign:"center",padding:"16px"}}>Programme terminé</div>}
+          </div>
+          <button className="btn btn-s" style={{width:"100%",justifyContent:"center",marginTop:"16px"}} onClick={()=>setDetail(null)}>Fermer</button>
+        </Modal>
+      )}
+
+      {showAdd&&<LotForm ak={ak} onSave={create} onClose={()=>setShowAdd(false)}/>}
+      {edit&&<LotForm ak={ak} existing={edit} onSave={update} onClose={()=>setEdit(null)}/>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// PAGE PROPHYLAXIE
+// ══════════════════════════════════════════════════════════
+function PropPage({ak}){
+  const an=A[ak];
+  return(
+    <div>
+      <div className="serif" style={{fontSize:"20px",marginBottom:"16px"}}>{an.emoji} Prophylaxie</div>
+      <div className="g2" style={{marginBottom:"14px"}}>
+        {[{t:"Vaccinations",i:"💉",c:"#1565C0",bg:"#E3F2FD",br:"#90CAF9",d:an.vaccins},
+          {t:"Traitements",i:"💊",c:"#6A1B9A",bg:"#F3E5F5",br:"#CE93D8",d:an.traitements},
+          {t:"Maladies",i:"🔍",c:"#E65100",bg:"#FFF3E0",br:"#FFCC80",d:an.maladies},
+          {t:"Phases",i:"📅",c:"#2E7D32",bg:"#E8F5E9",br:"#A5D6A7",d:an.phases}].map(s=>(
+          <div key={s.t} className="card" style={{padding:"13px",borderTop:`3px solid ${s.c}`}}>
+            <div style={{fontWeight:700,fontSize:"12px",color:s.c,marginBottom:"9px"}}>{s.i} {s.t}</div>
+            {s.d.map((item,i)=>(
+              <div key={i} style={{display:"flex",gap:"7px",padding:"5px 0",borderBottom:"1px solid var(--bdr)"}}>
+                <div style={{width:"5px",height:"5px",borderRadius:"50%",background:s.c,marginTop:"6px",flexShrink:0}}/>
+                <span style={{fontSize:"12px"}}>{item}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{padding:"16px"}}>
+        <div style={{fontWeight:700,marginBottom:"14px"}}>📋 Programme complet</div>
+        {an.prog.map((p,i)=>{
+          const m=CM[p.cat];
+          return(
+            <div key={i} style={{display:"flex",gap:"10px",alignItems:"center",padding:"9px 0",borderBottom:"1px solid var(--bdr)"}}>
+              <span style={{background:m.bg,color:m.c,border:`1px solid ${m.br}`,borderRadius:"6px",padding:"2px 8px",fontSize:"11px",fontWeight:700,flexShrink:0,minWidth:"46px",textAlign:"center"}}>J+{p.j}</span>
+              <span style={{fontSize:"13px",flexShrink:0}}>{m.i}</span>
+              <span style={{flex:1,fontSize:"12px",fontWeight:p.urgent?600:400,color:p.urgent?"#C62828":"var(--txt)"}}>{p.txt}</span>
+              {p.urgent&&<span style={{fontSize:"10px",background:"#FFEBEE",color:"#C62828",padding:"2px 7px",borderRadius:"6px",fontWeight:600,flexShrink:0}}>Urgent</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// PAGE PARAMÈTRES
+// ══════════════════════════════════════════════════════════
+function ParamPage({store,setStore,toast}){
+  const expJ=()=>{
+    const b=new Blob([JSON.stringify(store,null,2)],{type:"application/json"});
+    const u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=`elevage_${tod()}.json`;a.click();URL.revokeObjectURL(u);toast("Export OK ✓");
+  };
+  const impJ=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.lots){setStore(d);toast("Import OK ✓");}else toast("Fichier invalide","err");}catch{toast("Erreur","err");}};
+    r.readAsText(f);e.target.value="";
+  };
+  const expC=()=>{
+    const rows=[["Espèce","Lot","Effectif","Vivants","Mortalité","Date entrée","Phase","Date saisie","Catégorie","Produit","Quantité","Note","Morts saisis"]];
+    Object.entries(store.lots).forEach(([ak,ls])=>{
+      ls.forEach(lot=>{
+        const entries=[];
+        Object.entries(store.journal||{}).forEach(([d,jd])=>{if(jd[lot.id]?.entries?.length)jd[lot.id].entries.forEach(e=>entries.push([d,e]));});
+        if(!entries.length)rows.push([A[ak].label,lot.nom,lot.effectif,lot.effectif-(lot.mortalite||0),lot.mortalite||0,lot.dateEntree,lot.phase||"","","","","","",""]);
+        else entries.forEach(([d,e])=>rows.push([A[ak].label,lot.nom,lot.effectif,lot.effectif-(lot.mortalite||0),lot.mortalite||0,lot.dateEntree,lot.phase||"",d,e.cat,e.produit||"",e.qte||"",e.note||"",e.mort||0]));
+      });
+    });
+    const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\n");
+    const b=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=`rapport_${tod()}.csv`;a.click();URL.revokeObjectURL(u);toast("CSV exporté ✓");
+  };
+  const reset=()=>{if(!window.confirm("Effacer TOUTES les données ?"))return;const d=initSt();setStore(d);sv(d);toast("Effacé","warn");};
+
+  const nLots=Object.values(store.lots).reduce((s,ls)=>s+ls.length,0);
+  const nEnt=Object.values(store.journal||{}).reduce((s,jd)=>s+Object.values(jd).reduce((ss,ld)=>ss+(ld.entries?.length||0),0),0);
+  const nJ=Object.keys(store.journal||{}).length;
+
+  return(
+    <div>
+      <div className="serif" style={{fontSize:"20px",marginBottom:"16px"}}>⚙️ Paramètres</div>
+      <div className="g3" style={{marginBottom:"20px"}}>
+        {[{l:"Lots",v:nLots},{l:"Saisies",v:nEnt},{l:"Jours",v:nJ}].map(s=>(
+          <div key={s.l} className="stat"><div className="stat-v">{s.v}</div><div className="stat-l">{s.l}</div></div>
+        ))}
+      </div>
+      <div className="card" style={{padding:"18px",marginBottom:"12px"}}>
+        <div style={{fontWeight:700,marginBottom:"14px",fontSize:"15px"}}>💾 Données</div>
+        <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
+          {[
+            {ic:"📤",t:"Exporter sauvegarde (.json)",s:"Transférer vers un autre appareil",fn:expJ},
+            {ic:"📊",t:"Rapport CSV complet",s:"Ouvrir dans Excel ou Google Sheets",fn:expC},
+          ].map(b=>(
+            <button key={b.t} className="btn btn-s" style={{justifyContent:"flex-start",gap:"12px",padding:"12px 14px"}} onClick={b.fn}>
+              <span style={{fontSize:"20px"}}>{b.ic}</span>
+              <div style={{textAlign:"left"}}><div style={{fontWeight:600}}>{b.t}</div><div style={{fontSize:"11px",color:"var(--txt3)",fontWeight:400}}>{b.s}</div></div>
+            </button>
+          ))}
+          <label className="btn btn-s" style={{justifyContent:"flex-start",gap:"12px",padding:"12px 14px",cursor:"pointer"}}>
+            <span style={{fontSize:"20px"}}>📂</span>
+            <div style={{textAlign:"left"}}><div style={{fontWeight:600}}>Importer sauvegarde (.json)</div><div style={{fontSize:"11px",color:"var(--txt3)",fontWeight:400}}>Restaurer depuis un fichier</div></div>
+            <input type="file" accept=".json" onChange={impJ} style={{display:"none"}}/>
+          </label>
+        </div>
+      </div>
+      <div className="card" style={{padding:"18px",borderColor:"#FFCDD2"}}>
+        <div style={{fontWeight:700,color:"#C62828",marginBottom:"12px"}}>⚠️ Zone dangereuse</div>
+        <button className="btn btn-d" onClick={reset}>🗑 Effacer toutes les données</button>
+      </div>
+      <div style={{textAlign:"center",padding:"18px 0",fontSize:"11px",color:"var(--txt3)"}}>🌿 Élevage Tracker v3 · Données locales</div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════
+// APP
+// ══════════════════════════════════════════════════════════
+function App(){
+  const [store,setStoreRaw]=useState(()=>({...initSt(),...(ld()||{})}));
+  const [page,setPage]=useState("today");
+  const [selDay,setSelDay]=useState(tod());
+  const [saisie,setSaisie]=useState(null);
+  const [toastD,setToastD]=useState(null);
+
+  const today=tod();
+  const ak=store.ak||"poulet";
+  const an=A[ak];
+
+  const setStore=useCallback(upd=>{
+    setStoreRaw(p=>{const n=typeof upd==="function"?upd(p):upd;sv(n);return n;});
+  },[]);
+
+  const toast=(msg,type="ok")=>setToastD({msg,type});
+  const setAk=k=>setStore(s=>({...s,ak:k}));
+
+  const lots=store.lots[ak];
+  const totalV=lots.reduce((s,l)=>s+l.effectif-(l.mortalite||0),0);
+
+  // Alertes 3 jours
+  const alerts=useMemo(()=>{
+    const r=[];
+    for(let i=0;i<=3;i++){
+      const ds=addD(today,i);
+      lots.forEach(lot=>{
+        getTaches(ak,lot,ds).filter(t=>t.urgent||t.cat==="vaccin").forEach(t=>r.push({ds,lotNom:lot.nom,lotId:lot.id,...t}));
+      });
+    }
+    return r.slice(0,5);
+  },[lots,ak,today]);
+
+  // Saisies du jour
+  const saisiesAuj=useMemo(()=>{
+    const r=[];
+    lots.forEach(lot=>{
+      const jd=store.journal?.[today]?.[lot.id];
+      if(jd?.entries?.length)r.push({lot,entries:jd.entries});
+    });
+    return r;
+  },[lots,store.journal,today]);
+
+  const prevDay=()=>setSelDay(s=>addD(s,-1));
+  const nextDay=()=>{if(selDay<today)setSelDay(s=>addD(s,1));};
+  const isToday=selDay===today;
+
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)",paddingBottom:"74px"}}>
+
+      {/* TOP BAR */}
+      <div className="topbar">
+        <div className="topbar-inner">
+          <div>
+            <div className="serif" style={{fontSize:"19px",color:an.color,lineHeight:1.1}}>
+              🌿 Élevage Tracker
+            </div>
+            <div style={{fontSize:"11px",color:"var(--txt2)"}}>
+              {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}
+            </div>
+          </div>
+          {/* Animal switch */}
+          <div style={{display:"flex",gap:"5px",alignItems:"center"}}>
+            {Object.values(A).map(a=>(
+              <button key={a.id} className="achip" onClick={()=>setAk(a.id)}
+                style={{borderColor:ak===a.id?a.color:"transparent",background:ak===a.id?a.light:"transparent"}}>
+                {a.emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="page">
+
+        {/* ── AUJOURD'HUI ── */}
+        {page==="today"&&(
+          <div className="anim-up">
+            {/* Stats */}
+            <div className="g3" style={{marginBottom:"16px"}}>
+              <div className="stat" style={{background:an.light,border:`1px solid ${an.color}33`}}>
+                <div className="stat-v" style={{color:an.color}}>{lots.length}</div><div className="stat-l">Lots</div>
+              </div>
+              <div className="stat">
+                <div className="stat-v">{totalV}</div><div className="stat-l">Vivants</div>
+              </div>
+              <div className="stat">
+                <div className="stat-v" style={{color:"#5A8C52",fontSize:"18px"}}>
+                  {saisiesAuj.reduce((s,x)=>s+x.entries.length,0)}<span style={{fontSize:"12px"}}> sais.</span>
+                </div>
+                <div className="stat-l">Auj.</div>
+              </div>
+            </div>
+
+            {/* Alertes */}
+            {alerts.length>0&&(
+              <div style={{background:"#FFFBF0",border:"1.5px solid #FFCC80",borderRadius:"14px",padding:"12px 14px",marginBottom:"16px"}}>
+                <div style={{fontWeight:700,fontSize:"12px",color:"#BF6900",marginBottom:"9px"}}>🔔 À venir (3 jours)</div>
+                {alerts.map((t,i)=>(
+                  <div key={i} style={{display:"flex",gap:"8px",alignItems:"center",padding:"5px 0",borderBottom:i<alerts.length-1?"1px solid #FFE082":"none"}}>
+                    <span style={{fontSize:"16px"}}>{CM[t.cat]?.i||"⚠️"}</span>
+                    <div style={{flex:1}}>
+                      <span style={{fontSize:"12px",fontWeight:600}}>{t.txt}</span>
+                      <span style={{fontSize:"11px",color:"var(--txt2)",marginLeft:"5px"}}>— {t.lotNom}</span>
+                    </div>
+                    <span style={{fontSize:"11px",background:"var(--surf)",padding:"2px 8px",borderRadius:"6px",flexShrink:0,color:"var(--txt2)",border:"1px solid var(--bdr)"}}>
+                      {t.ds===today?"Auj.":t.ds===addD(today,1)?"Dem.":fmtSh(t.ds)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Nav jour */}
+            <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px",background:"var(--surf)",border:"1px solid var(--bdr)",borderRadius:"14px",padding:"10px 12px"}}>
+              <button className="btn btn-ghost btn-sm" onClick={prevDay} style={{padding:"6px 10px"}}>‹</button>
+              <div style={{flex:1,textAlign:"center"}}>
+                <div style={{fontWeight:700,fontSize:"14px",color:isToday?an.color:"var(--txt)"}}>
+                  {isToday?"Aujourd'hui":selDay===addD(today,-1)?"Hier":fmtSh(selDay)}
+                </div>
+                <div style={{fontSize:"11px",color:"var(--txt3)"}}>
+                  {new Date(selDay+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}
+                </div>
+              </div>
+              <button className="btn btn-ghost btn-sm" onClick={nextDay} disabled={isToday} style={{padding:"6px 10px",opacity:isToday?0.3:1}}>›</button>
+              {!isToday&&<button className="btn btn-xs btn-s" onClick={()=>setSelDay(today)}>Auj.</button>}
+            </div>
+
+            {/* Lots */}
+            {!lots.length?(
+              <div style={{textAlign:"center",padding:"40px 20px",color:"var(--txt3)"}}>
+                <div style={{fontSize:"48px",marginBottom:"12px"}}>{an.emoji}</div>
+                <div className="serif" style={{fontSize:"17px",color:"var(--txt2)",marginBottom:"8px"}}>Aucun lot {an.label}</div>
+                <div style={{fontSize:"13px",marginBottom:"20px"}}>Créez votre premier lot pour commencer</div>
+                <button className="btn btn-p" onClick={()=>setPage("lots")}>Créer un lot</button>
+              </div>
+            ):(
+              <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                {lots.map(lot=>(
+                  <LotCard key={lot.id} store={store} ak={ak} lot={lot} ds={selDay}
+                    onSaisie={()=>setSaisie({lotId:lot.id,ds:selDay})}/>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── CALENDRIER ── */}
+        {page==="calendar"&&(
+          <div className="anim-up">
+            <div className="card" style={{padding:"16px",marginBottom:"14px"}}>
+              <Cal store={store} ak={ak} selDay={selDay} onSel={d=>{setSelDay(d);}}/>
+            </div>
+            <div style={{marginBottom:"10px"}}>
+              <div style={{fontWeight:700,fontSize:"14px",color:selDay===today?an.color:"var(--txt)",marginBottom:"12px"}}>
+                {selDay===today?"Aujourd'hui — ":""}{fmtLong(selDay)}
+              </div>
+              {!lots.length?(
+                <div style={{textAlign:"center",padding:"24px",color:"var(--txt3)"}}>Aucun lot actif</div>
+              ):(
+                <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                  {lots.map(lot=>(
+                    <LotCard key={lot.id} store={store} ak={ak} lot={lot} ds={selDay}
+                      onSaisie={()=>setSaisie({lotId:lot.id,ds:selDay})}/>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── LOTS ── */}
+        {page==="lots"&&(
+          <div className="anim-up">
+            <LotsPage store={store} setStore={setStore} ak={ak} toast={toast}/>
+          </div>
+        )}
+
+        {/* ── PROPHYLAXIE ── */}
+        {page==="prop"&&(
+          <div className="anim-up"><PropPage ak={ak}/></div>
+        )}
+
+        {/* ── PARAMS ── */}
+        {page==="params"&&(
+          <div className="anim-up"><ParamPage store={store} setStore={setStore} toast={toast}/></div>
+        )}
+      </div>
+
+      {/* BOTTOM NAV */}
+      <div className="nav">
+        <div className="nav-inner">
+          {[{id:"today",ic:"🏠",l:"Aujourd'hui"},{id:"calendar",ic:"📅",l:"Calendrier"},{id:"lots",ic:"🐾",l:"Lots"},{id:"prop",ic:"🩺",l:"Santé"},{id:"params",ic:"⚙️",l:"Réglages"}].map(n=>(
+            <button key={n.id} className={`nav-btn${page===n.id?" on":""}`} onClick={()=>setPage(n.id)}>
+              <span className="ni">{n.ic}</span>{n.l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* MODAL SAISIE */}
+      {saisie&&(
+        <Saisie store={store} setStore={setStore} toast={toast}
+          ak={ak} ds={saisie.ds} lotId={saisie.lotId}
+          onClose={()=>setSaisie(null)}/>
+      )}
+
+      {toastD&&<Toast msg={toastD.msg} type={toastD.type} done={()=>setToastD(null)}/>}
+
+      <style>{`.btn:disabled{opacity:.4;cursor:not-allowed}textarea.finput{resize:vertical}`}</style>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
